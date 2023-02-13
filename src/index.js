@@ -7,7 +7,14 @@ const exampleContainer = document.getElementById('chart') || document.body
 const exampleBounds = exampleContainer.getBoundingClientRect()
 const dataGridWidthFull = 800
 
-const dashboard = lightningChart().Dashboard({
+let license = undefined
+try {
+    license = LCJS_LICENSE
+} catch (e) {}
+
+const dashboard = lightningChart({
+    license: license,
+}).Dashboard({
     // theme: Themes.darkGold
     numberOfColumns: 2,
     numberOfRows: 4,
