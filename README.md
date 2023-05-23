@@ -43,6 +43,9 @@ The data used in this example is from [Live coin watch](https://www.livecoinwatc
 
 ## API Links
 
+* [Data Grid]
+* [Chart XY]
+* [Spark Chart]
 
 
 ## Support
@@ -66,4 +69,7 @@ Direct developer email support can be purchased through a [Support Plan][4] or b
 © LightningChart Ltd 2009-2022. All rights reserved.
 
 
+[Data Grid]: https://lightningchart.com/lightningchart-js-api-documentation/v4.1.0/classes/DataGrid.html
+[Chart XY]: https://lightningchart.com/lightningchart-js-api-documentation/v4.1.0/classes/ChartXY.html
+[Spark Chart]: https://lightningchart.com/lightningchart-js-api-documentation/v4.1.0/types/SparkChart.html
 
