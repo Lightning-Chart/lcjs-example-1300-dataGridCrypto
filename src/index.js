@@ -12,6 +12,7 @@ try {
     license = LCJS_LICENSE
 } catch (e) {}
 
+// NOTE: Using `Dashboard` is no longer recommended for new applications. Find latest recommendations here: https://lightningchart.com/js-charts/docs/basic-topics/grouping-charts/
 const dashboard = lightningChart({
     license: license,
 }).Dashboard({
@@ -212,8 +213,7 @@ setTimeout(async () => {
     const coinsInfo = await fetch(`${assetsUrl}/coins-list.json`).then((r) => r.json())
     const coinsData = new Array(coinsInfo.length).fill(0)
 
-    const dNow = new Date(2022, 7, 8)
-    const tNow = dNow.getTime()
+    const tNow = Date.UTC(2023, 9, 15, 24, 0, 0)
 
     for (let iCoin = 0; iCoin < coinsInfo.length; iCoin += 1) {
         const coinInfo = coinsInfo[iCoin]
