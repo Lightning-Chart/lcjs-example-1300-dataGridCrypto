@@ -16,7 +16,7 @@ try {
 const dashboard = lightningChart({
     license: license,
 }).Dashboard({
-    // theme: Themes.darkGold
+    theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
     numberOfColumns: 2,
     numberOfRows: 4,
 })
