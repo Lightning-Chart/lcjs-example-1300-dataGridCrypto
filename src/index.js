@@ -2,7 +2,7 @@ const lcjs = require('@arction/lcjs')
 const { AxisTickStrategies, emptyTick, FormattingFunctions, SolidLine, SolidFill, synchronizeAxisIntervals, lightningChart, Themes } = lcjs
 
 const highlightIntensity = 0.2 // [0, 1]
-const assetsUrl = document.head.baseURI + 'examples/assets/1300'
+const assetsUrl = new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'examples/assets/1300'
 const exampleContainer = document.getElementById('chart') || document.body
 const exampleBounds = exampleContainer.getBoundingClientRect()
 const dataGridWidthFull = 800
