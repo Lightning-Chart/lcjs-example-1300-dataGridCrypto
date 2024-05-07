@@ -1,29 +1,33 @@
 const lcjs = require('@arction/lcjs')
-const { AxisTickStrategies, emptyTick, FormattingFunctions, SolidLine, SolidFill, synchronizeAxisIntervals, lightningChart, Themes } = lcjs
+const { AxisTickStrategies, emptyTick, FormattingFunctions, SolidLine, emptyFill, SolidFill, lightningChart, Themes } = lcjs
 
 const highlightIntensity = 0.2 // [0, 1]
 const assetsUrl = new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'examples/assets/1300'
 const exampleContainer = document.getElementById('chart') || document.body
-const exampleBounds = exampleContainer.getBoundingClientRect()
-const dataGridWidthFull = 800
+if (exampleContainer === document.body) {
+    exampleContainer.style.width = '100vw'
+    exampleContainer.style.height = '100vh'
+    exampleContainer.style.margin = '0px'
+}
+exampleContainer.style.display = 'flex'
+exampleContainer.style.flexDirection = 'row'
+const containerDataGrid = document.createElement('div')
+containerDataGrid.style.width = '60%'
+containerDataGrid.style.height = '100%'
+exampleContainer.append(containerDataGrid)
+const containerDrilldown = document.createElement('div')
+containerDrilldown.style.width = '40%'
+containerDrilldown.style.height = '100%'
+exampleContainer.append(containerDrilldown)
 
 let license = undefined
 try {
     license = LCJS_LICENSE
 } catch (e) {}
 
-// NOTE: Using `Dashboard` is no longer recommended for new applications. Find latest recommendations here: https://lightningchart.com/js-charts/docs/basic-topics/grouping-charts/
-const dashboard = lightningChart({
-    license: license,
-}).Dashboard({
-    theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
-    numberOfColumns: 2,
-    numberOfRows: 4,
-})
-
-if (exampleBounds.width > 1200) {
-    dashboard.setColumnWidth(0, dataGridWidthFull).setColumnWidth(1, exampleBounds.width - dataGridWidthFull)
-}
+const lc = lightningChart({
+            resourcesBaseUrl: new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'resources/',
+        })
 
 /**
  * Calculate delta between open and close for given time range (1 hour, 1 day, etc.) from list of data points.
@@ -59,36 +63,41 @@ const setDrillDown = (() => {
 
         const { name } = coinInfo
 
-        const chartRate = dashboard
-            .createChartXY({ columnIndex: 1, rowIndex: 0 })
-            .setTitle(`${name} Rate $`)
-            .setTitlePosition('series-left-top')
-            .setTitleMargin(0)
-            .forEachAxis((axis) => axis.setAnimationScroll(false))
-        chartRate.getDefaultAxisX().setTickStrategy(AxisTickStrategies.Empty)
-        const seriesRate = chartRate
-            .addLineSeries({ dataPattern: { pattern: 'ProgressiveX' } })
+        const chart = lc
+            .ChartXY({
+                container: containerDrilldown,
+                defaultAxisX: { type: 'linear-highPrecision' },
+                theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
+            })
+            .setTitle(name)
+        chart
+            .getDefaultAxisX()
+            .setTickStrategy(AxisTickStrategies.DateTime)
+            .setIntervalRestrictions((state) => ({
+                startMin: state.dataMin,
+                endMax: state.dataMax,
+            }))
+        chart.getDefaultAxisY().dispose()
+        const axisRate = chart.addAxisY({ iStack: 3 }).setTitle(`Rate $`).setMargins(10, 0)
+        const seriesRate = chart
+            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisRate })
+            .setAreaFillStyle(emptyFill)
             .setName(`${name} Rate $`)
-            .add(coinData.map((p) => ({ x: p.date, y: p.rate })))
-            .setCursorResultTableFormatter((builder, series, x, y, dataPoint) =>
+            .appendJSON(coinData.map((p) => ({ x: p.date, y: p.rate })))
+            .setCursorResultTableFormatter((builder, series, dataPoint) =>
                 builder
                     .addRow(series.getName())
                     .addRow(timeAxis.formatValue(dataPoint.x))
                     .addRow(`$${series.axisY.formatValue(dataPoint.y)}`),
             )
 
-        const chartVolume = dashboard
-            .createChartXY({ columnIndex: 1, rowIndex: 1 })
-            .setTitle(`${name} Volume $`)
-            .setTitlePosition('series-left-top')
-            .setTitleMargin(0)
-            .forEachAxis((axis) => axis.setAnimationScroll(false))
-        chartVolume.getDefaultAxisX().setTickStrategy(AxisTickStrategies.Empty)
-        chartVolume
-            .getDefaultAxisY()
+        const axisVolume = chart
+            .addAxisY({ iStack: 2 })
+            .setTitle(`Volume $`)
+            .setMargins(10, 10)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
-        const seriesVolume = chartVolume
-            .addAreaSeries()
+        const seriesVolume = chart
+            .addAreaSeries({ yAxis: axisVolume })
             .setName(`${name} Volume $`)
             .add(coinData.map((p) => ({ x: p.date, y: p.volume })))
             .setCursorResultTableFormatter((builder, series, x, high, low) =>
@@ -98,62 +107,47 @@ const setDrillDown = (() => {
                     .addRow(`$${(high / 10 ** 9).toFixed(3)} B`),
             )
 
-        const chartLiquidity = dashboard
-            .createChartXY({ columnIndex: 1, rowIndex: 2 })
-            .setTitle(`${name} Liquidity $`)
-            .setTitlePosition('series-left-top')
-            .setTitleMargin(0)
-            .forEachAxis((axis) => axis.setAnimationScroll(false))
-        chartLiquidity.getDefaultAxisX().setTickStrategy(AxisTickStrategies.Empty)
-        chartLiquidity
-            .getDefaultAxisY()
+        const axisLiquidity = chart
+            .addAxisY({ iStack: 1 })
+            .setTitle(`Liquidity $`)
+            .setMargins(10, 10)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
-        const seriesLiquidity = chartLiquidity
-            .addLineSeries({ dataPattern: { pattern: 'ProgressiveX' } })
+        const seriesLiquidity = chart
+            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisLiquidity })
+            .setAreaFillStyle(emptyFill)
             .setName(`${name} Liquidity $`)
             .add(coinData.map((p) => ({ x: p.date, y: p.liquidity })))
-            .setCursorResultTableFormatter((builder, series, x, y, dataPoint) =>
+            .setCursorResultTableFormatter((builder, series, dataPoint) =>
                 builder
                     .addRow(series.getName())
                     .addRow(timeAxis.formatValue(dataPoint.x))
                     .addRow(`$${series.axisY.formatValue(dataPoint.y)}`),
             )
 
-        const chartCap = dashboard
-            .createChartXY({ columnIndex: 1, rowIndex: 3 })
-            .setTitle(`${name} Market Cap $`)
-            .setTitlePosition('series-left-top')
-            .setTitleMargin(0)
-            .forEachAxis((axis) => axis.setAnimationScroll(false))
-        chartCap.getDefaultAxisX().setTickStrategy(AxisTickStrategies.DateTime, (ticks) => ticks.setGreatTickStyle(emptyTick))
-        chartCap
-            .getDefaultAxisY()
+        const axisCap = chart
+            .addAxisY({ iStack: 0 })
+            .setTitle(`Market Cap $`)
+            .setMargins(0, 10)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
-        const seriesCap = chartCap
-            .addLineSeries({ dataPattern: { pattern: 'ProgressiveX' } })
+        const seriesCap = chart
+            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisCap })
+            .setAreaFillStyle(emptyFill)
             .setName(`${name} Market Cap $`)
             .add(coinData.map((p) => ({ x: p.date, y: p.cap })))
-            .setCursorResultTableFormatter((builder, series, x, y, dataPoint) =>
+            .setCursorResultTableFormatter((builder, series, dataPoint) =>
                 builder
                     .addRow(series.getName())
                     .addRow(timeAxis.formatValue(dataPoint.x))
                     .addRow(`$${series.axisY.formatValue(dataPoint.y)}`),
             )
 
-        const charts = [chartRate, chartVolume, chartLiquidity, chartCap]
-        const seriesList = [seriesRate, seriesVolume, seriesLiquidity, seriesCap]
-
-        const timeAxis = chartCap.getDefaultAxisX()
-        const axesX = charts.map((chart) => chart.getDefaultAxisX())
-        synchronizeAxisIntervals(...axesX)
-
-        const axesY = charts.map((chart) => chart.getDefaultAxisY())
-        axesY.forEach((axis) => axis.setThickness(60).setChartInteractionZoomByWheel(false).setChartInteractionPanByDrag(false))
-
-        charts.forEach((chart) => chart.setAutoCursor((cursor) => cursor.setTickMarkerXVisible(false)))
+        chart.forEachAxis((axis) => axis.setAnimationScroll(false))
+        const timeAxis = chart.getDefaultAxisX()
+        const axesY = [axisRate, axisVolume, axisLiquidity, axisCap]
+        axesY.forEach((axis) => axis.setChartInteractionZoomByWheel(false).setChartInteractionPanByDrag(false).setMouseInteractions(false))
 
         const dispose = () => {
-            charts.forEach((chart) => chart.dispose())
+            chart.dispose()
         }
 
         activeDrillDown = { info: coinInfo, dispose }
@@ -161,7 +155,10 @@ const setDrillDown = (() => {
 })()
 
 setTimeout(async () => {
-    const dataGrid = dashboard.createDataGrid({ columnIndex: 0, rowIndex: 0, rowSpan: 4 })
+    const dataGrid = lc.DataGrid({
+        container: containerDataGrid,
+        // theme: Themes.darkGold
+    })
 
     const gridColHighlight = 0
     const gridColCoin = 1
