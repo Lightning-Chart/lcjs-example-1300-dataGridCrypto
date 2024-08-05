@@ -1,4 +1,4 @@
-const lcjs = require('@arction/lcjs')
+const lcjs = require('@lightningchart/lcjs')
 const { AxisTickStrategies, emptyTick, FormattingFunctions, SolidLine, emptyFill, SolidFill, lightningChart, Themes } = lcjs
 
 const highlightIntensity = 0.2 // [0, 1]
@@ -70,6 +70,7 @@ const setDrillDown = (() => {
                 theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
             })
             .setTitle(name)
+            .setCursor((cursor) => cursor.setTickMarkerXVisible(false))
         chart
             .getDefaultAxisX()
             .setTickStrategy(AxisTickStrategies.DateTime)
@@ -78,68 +79,47 @@ const setDrillDown = (() => {
                 endMax: state.dataMax,
             }))
         chart.getDefaultAxisY().dispose()
-        const axisRate = chart.addAxisY({ iStack: 3 }).setTitle(`Rate $`).setMargins(10, 0)
+        const axisRate = chart.addAxisY({ iStack: 3 }).setTitle(`Rate`).setUnits('$').setMargins(10, 0)
         const seriesRate = chart
             .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisRate })
             .setAreaFillStyle(emptyFill)
-            .setName(`${name} Rate $`)
-            .appendJSON(coinData.map((p) => ({ x: p.date, y: p.rate })))
-            .setCursorResultTableFormatter((builder, series, dataPoint) =>
-                builder
-                    .addRow(series.getName())
-                    .addRow(timeAxis.formatValue(dataPoint.x))
-                    .addRow(`$${series.axisY.formatValue(dataPoint.y)}`),
-            )
+            .setName(`${name} Rate`)
+            .appendJSON(coinData, { x: 'date', y: 'rate' })
 
         const axisVolume = chart
             .addAxisY({ iStack: 2 })
-            .setTitle(`Volume $`)
+            .setTitle(`Volume`)
+            .setUnits('$')
             .setMargins(10, 10)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
         const seriesVolume = chart
-            .addAreaSeries({ yAxis: axisVolume })
-            .setName(`${name} Volume $`)
-            .add(coinData.map((p) => ({ x: p.date, y: p.volume })))
-            .setCursorResultTableFormatter((builder, series, x, high, low) =>
-                builder
-                    .addRow(series.getName())
-                    .addRow(timeAxis.formatValue(x))
-                    .addRow(`$${(high / 10 ** 9).toFixed(3)} B`),
-            )
+            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisVolume })
+            .setName(`${name} Volume`)
+            .appendJSON(coinData, { x: 'date', y: 'volume' })
 
         const axisLiquidity = chart
             .addAxisY({ iStack: 1 })
-            .setTitle(`Liquidity $`)
+            .setTitle(`Liquidity`)
+            .setUnits('$')
             .setMargins(10, 10)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
         const seriesLiquidity = chart
             .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisLiquidity })
             .setAreaFillStyle(emptyFill)
-            .setName(`${name} Liquidity $`)
-            .add(coinData.map((p) => ({ x: p.date, y: p.liquidity })))
-            .setCursorResultTableFormatter((builder, series, dataPoint) =>
-                builder
-                    .addRow(series.getName())
-                    .addRow(timeAxis.formatValue(dataPoint.x))
-                    .addRow(`$${series.axisY.formatValue(dataPoint.y)}`),
-            )
+            .setName(`${name} Liquidity`)
+            .appendJSON(coinData, { x: 'date', y: 'liquidity' })
 
         const axisCap = chart
             .addAxisY({ iStack: 0 })
-            .setTitle(`Market Cap $`)
+            .setTitle(`Market Cap`)
+            .setUnits('$')
             .setMargins(0, 10)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
         const seriesCap = chart
             .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisCap })
             .setAreaFillStyle(emptyFill)
-            .setName(`${name} Market Cap $`)
-            .add(coinData.map((p) => ({ x: p.date, y: p.cap })))
-            .setCursorResultTableFormatter((builder, series, dataPoint) =>
-                builder
-                    .addRow(series.getName())
-                    .addRow(timeAxis.formatValue(dataPoint.x))
-                    .addRow(`$${series.axisY.formatValue(dataPoint.y)}`),
-            )
+            .setName(`${name} Market Cap`)
+            .appendJSON(coinData, { x: 'date', y: 'cap' })
 
         chart.forEachAxis((axis) => axis.setAnimationScroll(false))
         const timeAxis = chart.getDefaultAxisX()
