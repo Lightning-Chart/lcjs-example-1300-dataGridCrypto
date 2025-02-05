@@ -20,11 +20,6 @@ containerDrilldown.style.width = '40%'
 containerDrilldown.style.height = '100%'
 exampleContainer.append(containerDrilldown)
 
-let license = undefined
-try {
-    license = LCJS_LICENSE
-} catch (e) {}
-
 const lc = lightningChart({
             resourcesBaseUrl: new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'resources/',
         })
@@ -79,7 +74,7 @@ const setDrillDown = (() => {
                 endMax: state.dataMax,
             }))
         chart.getDefaultAxisY().dispose()
-        const axisRate = chart.addAxisY({ iStack: 3 }).setTitle(`Rate`).setUnits('$').setMargins(10, 0)
+        const axisRate = chart.addAxisY({ iStack: 3 }).setTitle(`Rate`).setUnits('$').setMargins(5, 0)
         const seriesRate = chart
             .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisRate })
             .setAreaFillStyle(emptyFill)
@@ -90,7 +85,7 @@ const setDrillDown = (() => {
             .addAxisY({ iStack: 2 })
             .setTitle(`Volume`)
             .setUnits('$')
-            .setMargins(10, 10)
+            .setMargins(5, 5)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
         const seriesVolume = chart
             .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisVolume })
@@ -101,7 +96,7 @@ const setDrillDown = (() => {
             .addAxisY({ iStack: 1 })
             .setTitle(`Liquidity`)
             .setUnits('$')
-            .setMargins(10, 10)
+            .setMargins(5, 5)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
         const seriesLiquidity = chart
             .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisLiquidity })
@@ -113,7 +108,7 @@ const setDrillDown = (() => {
             .addAxisY({ iStack: 0 })
             .setTitle(`Market Cap`)
             .setUnits('$')
-            .setMargins(0, 10)
+            .setMargins(0, 5)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
         const seriesCap = chart
             .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisCap })
@@ -124,7 +119,6 @@ const setDrillDown = (() => {
         chart.forEachAxis((axis) => axis.setAnimationScroll(false))
         const timeAxis = chart.getDefaultAxisX()
         const axesY = [axisRate, axisVolume, axisLiquidity, axisCap]
-        axesY.forEach((axis) => axis.setChartInteractionZoomByWheel(false).setChartInteractionPanByDrag(false).setMouseInteractions(false))
 
         const dispose = () => {
             chart.dispose()
@@ -270,7 +264,7 @@ setTimeout(async () => {
     }
 
     let selectedCoinIndex = 0
-    dataGrid.onCellMouseEnter((cell, event) => {
+    dataGrid.cells.addEventListener('pointerenter', (event, cell) => {
         const iCoin = Math.floor((cell.row - 1) / 2)
         if (iCoin < 0) {
             return
@@ -280,14 +274,14 @@ setTimeout(async () => {
             .setRowHighlight(1 + iCoin * 2 + 1, highlightIntensity)
             .setCellBackgroundFillStyle(gridColHighlight, 1 + iCoin * 2, bgHighlightFill)
     })
-    dataGrid.onCellMouseLeave((cell, event) => {
+    dataGrid.cells.addEventListener('pointerleave', (event, cell) => {
         const iCoin = Math.floor((cell.row - 1) / 2)
         dataGrid
             .setRowHighlight(1 + iCoin * 2, selectedCoinIndex === iCoin ? highlightIntensity : 0)
             .setRowHighlight(1 + iCoin * 2 + 1, selectedCoinIndex === iCoin ? highlightIntensity : 0)
             .setCellBackgroundFillStyle(gridColHighlight, 1 + iCoin * 2, selectedCoinIndex === iCoin ? bgHighlightFill : bgNormalFill)
     })
-    dataGrid.onCellMouseClick((cell, event) => {
+    dataGrid.cells.addEventListener('click', (event, cell) => {
         const iCoin = Math.floor((cell.row - 1) / 2)
         if (iCoin < 0) {
             return
