@@ -1,5 +1,5 @@
 const lcjs = require('@lightningchart/lcjs')
-const { AxisTickStrategies, emptyTick, FormattingFunctions, SolidLine, emptyFill, SolidFill, lightningChart, Themes } = lcjs
+const { AxisTickStrategies, emptyTick, FormattingFunctions, SolidLine, emptyFill, SolidFill, lightningChart, DataSetXY, Themes } = lcjs
 
 const highlightIntensity = 0.2 // [0, 1]
 const assetsUrl = new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'examples/assets/1300'
@@ -60,6 +60,7 @@ const setDrillDown = (() => {
 
         const chart = lc
             .ChartXY({
+                legend: { visible: false },
                 container: containerDrilldown,
                 defaultAxisX: { type: 'linear-highPrecision' },
                 theme: Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined,
@@ -74,12 +75,9 @@ const setDrillDown = (() => {
                 endMax: state.dataMax,
             }))
         chart.getDefaultAxisY().dispose()
+        const dataSet = new DataSetXY().appendJSON(coinData)
         const axisRate = chart.addAxisY({ iStack: 3 }).setTitle(`Rate`).setUnits('$').setMargins(5, 0)
-        const seriesRate = chart
-            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisRate })
-            .setAreaFillStyle(emptyFill)
-            .setName(`${name} Rate`)
-            .appendJSON(coinData, { x: 'date', y: 'rate' })
+        const seriesRate = chart.addLineSeries({ yAxis: axisRate }).setName(`${name} Rate`).setDataSet(dataSet, { x: 'date', y: 'rate' })
 
         const axisVolume = chart
             .addAxisY({ iStack: 2 })
@@ -88,9 +86,9 @@ const setDrillDown = (() => {
             .setMargins(5, 5)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
         const seriesVolume = chart
-            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisVolume })
+            .addAreaSeries({ yAxis: axisVolume })
             .setName(`${name} Volume`)
-            .appendJSON(coinData, { x: 'date', y: 'volume' })
+            .setDataSet(dataSet, { x: 'date', y: 'volume' })
 
         const axisLiquidity = chart
             .addAxisY({ iStack: 1 })
@@ -99,10 +97,9 @@ const setDrillDown = (() => {
             .setMargins(5, 5)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
         const seriesLiquidity = chart
-            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisLiquidity })
-            .setAreaFillStyle(emptyFill)
+            .addLineSeries({ yAxis: axisLiquidity })
             .setName(`${name} Liquidity`)
-            .appendJSON(coinData, { x: 'date', y: 'liquidity' })
+            .setDataSet(dataSet, { x: 'date', y: 'liquidity' })
 
         const axisCap = chart
             .addAxisY({ iStack: 0 })
@@ -110,11 +107,7 @@ const setDrillDown = (() => {
             .setUnits('$')
             .setMargins(0, 5)
             .setTickStrategy(AxisTickStrategies.Numeric, (ticks) => ticks.setFormattingFunction(FormattingFunctions.NumericUnits))
-        const seriesCap = chart
-            .addPointLineAreaSeries({ dataPattern: 'ProgressiveX', yAxis: axisCap })
-            .setAreaFillStyle(emptyFill)
-            .setName(`${name} Market Cap`)
-            .appendJSON(coinData, { x: 'date', y: 'cap' })
+        const seriesCap = chart.addLineSeries({ yAxis: axisCap }).setName(`${name} Market Cap`).setDataSet(dataSet, { x: 'date', y: 'cap' })
 
         chart.forEachAxis((axis) => axis.setAnimationScroll(false))
         const timeAxis = chart.getDefaultAxisX()
