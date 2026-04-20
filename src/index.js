@@ -10,15 +10,16 @@ if (exampleContainer === document.body) {
     exampleContainer.style.height = '100vh'
     exampleContainer.style.margin = '0px'
 }
+const smallView = window.lcjsSmallView
 exampleContainer.style.display = 'flex'
-exampleContainer.style.flexDirection = 'row'
+exampleContainer.style.flexDirection = smallView ? 'column' : 'row'
 const containerDataGrid = document.createElement('div')
-containerDataGrid.style.width = '60%'
-containerDataGrid.style.height = '100%'
+containerDataGrid.style.width = smallView ? '100%' : '60%'
+containerDataGrid.style.height = smallView ? '50%' : '100%'
 exampleContainer.append(containerDataGrid)
 const containerDrilldown = document.createElement('div')
-containerDrilldown.style.width = '40%'
-containerDrilldown.style.height = '100%'
+containerDrilldown.style.width = smallView ? '100%' : '40%'
+containerDrilldown.style.height = smallView ? '50%' : '100%'
 exampleContainer.append(containerDrilldown)
 
 const lc = lightningChart({
