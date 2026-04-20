@@ -176,10 +176,10 @@ textRenderer: window.lcjsSmallView ? lcjs.htmlTextRenderer : undefined,
         .setCellContent(gridColMarketCap, 0, 'Market Cap')
         .setCellContent(gridColVolume, 0, 'Volume')
         .setCellContent(gridColAllTimeHigh, 0, 'All-time High')
-        .setColumnWidth(gridColHighlight, 6)
-        .setColumnWidth(gridCol1h, 100)
-        .setColumnWidth(gridCol24h, 100)
-        .setColumnWidth(gridCol1w, 100)
+        .setColumnWidth(gridColHighlight, smallView ? 4 : 6)
+        .setColumnWidth(gridCol1h, smallView ? 55 : 100)
+        .setColumnWidth(gridCol24h, smallView ? 55 : 100)
+        .setColumnWidth(gridCol1w, smallView ? 55 : 100)
         .setRowTextFont(0, fontHeader)
         .setRowBorders(0, { bottom: true })
         .setRowTextFillStyle(0, textFillHeader)
@@ -202,15 +202,15 @@ textRenderer: window.lcjsSmallView ? lcjs.htmlTextRenderer : undefined,
         const coinIconImage = new Image()
         coinIconImage.crossOrigin = '*'
         coinIconImage.src = coinIconUrl
-        const icon = dataGrid.engine.addCustomIcon(coinIconImage, { height: 32 })
+        const icon = dataGrid.engine.addCustomIcon(coinIconImage, { height: smallView ? 18 : 32 })
 
         const dataGlance1h = calcDataAtAGlance(coinData, tNow - 1 * 60 * 60 * 1000, tNow)
         const dataGlance24h = calcDataAtAGlance(coinData, tNow - 24 * 60 * 60 * 1000, tNow)
         const dataGlance1w = calcDataAtAGlance(coinData, tNow - 7 * 24 * 60 * 60 * 1000, tNow)
 
         dataGrid
-            .setRowHeight(coinRowTop, 30)
-            .setRowHeight(coinRowBottom, 30)
+            .setRowHeight(coinRowTop, smallView ? 18 : 30)
+            .setRowHeight(coinRowBottom, smallView ? 18 : 30)
             // NOTE: First column just used for highlighting active row.
             .setCellContent(gridColHighlight, coinRowTop, 1, 2, ' ')
             .setCellContent(gridColCoin, coinRowTop, 1, 2, icon)
