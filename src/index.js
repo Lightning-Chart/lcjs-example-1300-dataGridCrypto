@@ -1,6 +1,6 @@
 window.lcjsSmallView = window.devicePixelRatio >= 2
 const lcjs = require('@lightningchart/lcjs')
-const { AxisTickStrategies, emptyTick, FormattingFunctions, SolidLine, emptyFill, SolidFill, lightningChart, DataSetXY, Themes } = lcjs
+const { AxisTickStrategies, emptyTick, FormattingFunctions, SolidLine, emptyFill, SolidFill, lightningChart, DataSet, Themes } = lcjs
 
 const highlightIntensity = 0.2 // [0, 1]
 const assetsUrl = new URL(document.head.baseURI).origin + new URL(document.head.baseURI).pathname + 'examples/assets/1300'
@@ -64,7 +64,6 @@ const setDrillDown = (() => {
             .ChartXY({
                 legend: { visible: false },
                 container: containerDrilldown,
-                defaultAxisX: { type: 'linear-highPrecision' },
                 theme: (() => {
     const t = Themes[new URLSearchParams(window.location.search).get('theme') || 'darkGold'] || undefined
     return t && window.lcjsSmallView ? lcjs.scaleTheme(t, 0.5) : t
@@ -81,7 +80,7 @@ textRenderer: window.lcjsSmallView ? lcjs.htmlTextRenderer : undefined,
                 endMax: state.dataMax,
             }))
         chart.getDefaultAxisY().dispose()
-        const dataSet = new DataSetXY().appendJSON(coinData)
+        const dataSet = new DataSet().appendJSON(coinData)
         const axisRate = chart.addAxisY({ iStack: 3 }).setTitle(`Rate`).setUnits('$').setMargins(5, 0)
         const seriesRate = chart.addLineSeries({ yAxis: axisRate }).setName(`${name} Rate`).setDataSet(dataSet, { x: 'date', y: 'rate' })
 
